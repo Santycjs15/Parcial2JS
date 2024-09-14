@@ -1,8 +1,7 @@
 const datos = require("./datos.json");
 
 function puntoUno(estudiantes) {
-  // CODIGO DE PUNTO 1 AQUI
-  //Implemente una función que reciba los datos de estudiantes y retorne los correos de los estudiantes que han estado involucrados en la extra curricular INNOVA.
+
 
 let prim = estudiantes.filter(estudiante => estudiante.info_extra_curriculares.length > 0);
 
@@ -15,39 +14,32 @@ console.log(puntoUno(datos).length);
 
 
 // CODIGO DE PUNTO 2 AQUI
-/* function puntoDos(estudiantes){
-  const mejoresPorSemestre = estudiantes.reduce((acc, estudiante) => {
-    const semestre = estudiante.info_matricula.semestre;
-    if (!acc[semestre] || estudiante.promedio > acc[semestre].promedio) {
-        acc[semestre] = estudiante;
-    }
-    return acc;
-}, );
-
-return Object.values(mejoresPorSemestre).map(est => `${est.nombreCompleto}`);
-}
-console.log(puntoDos(datos)); */
 
 function puntoDos(estudiantes) {
   return Object.values(
-      estudiantes.reduce((mejoresPorSemestre, estudiante) => {
-          estudiante.info_matricula.map(curso => {
-              const totalPeso = curso.notas.reduce((acc, nota) => acc + nota.peso, 0);
-              const promedio = curso.notas.reduce((acc, nota) => acc + nota.nota * nota.peso, 0) / totalPeso;
+      estudiantes.reduce((mejoresPorSemestre, estudiante) =>
+          estudiante.info_matricula.reduce((mejoresPorCurso, curso) => {
+              let promedio = curso.notas
+                  .map(nota => nota.nota * nota.peso)
+                  .reduce((acc, nota) => acc + nota, 0);
 
-              const mejorEstudiante = mejoresPorSemestre[curso.semestre];
-              if (!mejorEstudiante || promedio > mejorEstudiante.promedio) {
-                  mejoresPorSemestre[curso.semestre] = {
+                  const semNuevo = mejoresPorCurso[curso.semestre] && mejoresPorCurso[curso.semestre].promedio > promedio
+                  ? mejoresPorCurso[curso.semestre]
+                  : {
                       nombreCompleto: `${estudiante.info_personal.nombre} ${estudiante.info_personal.apellido}`,
                       promedio: promedio
-                  };
-              }
-          });
-          return mejoresPorSemestre;
-      }, {})
+                    };
+              return {
+                  ...mejoresPorCurso,
+                  [curso.semestre]: semNuevo
+              };
+          }, mejoresPorSemestre)
+      , {})
   ).map(est => est.nombreCompleto);
 }
-console.log(puntoDos(datos));
+
+
+
 
 
 
@@ -56,23 +48,31 @@ console.log(puntoDos(datos));
 // CODIGO DE PUNTO 3 AQUI
 function puntoTres(estudiantes) {
   return estudiantes
-      .filter(estudiante => estudiante.info_matricula.semestre === 1)
-      .map(estudiante => {
-          const { nombre, apellido, genero, altura, edad, nacimiento, correo, usuario } = estudiante.info_personal;
-          return {
-              gender: genero,
-              titulo: genero === 'M' ? 'Sr.' : 'Sra.',
-              nombreCompleto: `${nombre} ${apellido}`,
-              primerNombre: nombre,
-              primerApellido: apellido,
-              altura: altura,
-              edad: edad,
-              nacimiento: nacimiento,
-              correo: correo,
-              usuario: usuario
-          };
-      });
+  .filter((estudiante) => estudiante.info_matricula.every((curso) => curso.semestre === 1)
+  )
+    .map((estudiante) => {
+      const { 
+        gender, 
+        nombre, 
+        apellido, 
+        altura, 
+        nacimiento, 
+        correo 
+      } = estudiante.info_personal;
+
+      return {
+        gender: gender,
+        titulo: gender === "M" ? "Sr." : "Sra.",
+        nombreCompleto: `${nombre} ${apellido}`,
+        primerNombre: nombre,
+        primerApellido: apellido,
+        altura: Math.round(altura * 100),
+        edad: 2024 - nacimiento.split("-")[0],
+        nacimiento: nacimiento,
+        correo: correo,
+        usuario: correo.split("@")[0],
+      };
+    });
 }
 
 
-console.log(puntoTres(datos));
